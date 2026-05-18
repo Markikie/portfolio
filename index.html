@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Fullstack Developer Portfolio — OS Shell" />
+  <title>portfolio.os</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --surface: #121820;
+      --surface-2: #1a2230;
+      --border: #2a3548;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --accent: #39bae6;
+      --accent-2: #7fd962;
+      --warn: #ffb454;
+      --danger: #f07178;
+      --purple: #c678dd;
+      --titlebar: #1e2636;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+      --radius: 10px;
+      --font-mono: "IBM Plex Mono", monospace;
+      --font-sans: "IBM Plex Sans Thai", system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      user-select: none;
+    }
+
+    /* Boot */
+    #boot {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      transition: opacity 0.6s ease, visibility 0.6s;
+    }
+    #boot.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+    #boot .logo { font-size: 2rem; color: var(--accent); margin-bottom: 1.5rem; letter-spacing: 0.15em; }
+    #boot .bar-wrap { width: 280px; height: 4px; background: #222; border-radius: 2px; overflow: hidden; }
+    #boot .bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.15s; }
+    #boot .log { margin-top: 1rem; font-size: 0.72rem; color: var(--muted); min-height: 1.2em; }
+
+    /* Desktop */
+    #desktop {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(57, 186, 230, 0.12), transparent),
+        radial-gradient(ellipse 60% 50% at 10% 80%, rgba(127, 217, 98, 0.08), transparent),
+        linear-gradient(160deg, #0d1118 0%, #0a0e14 50%, #080b10 100%);
+    }
+    #desktop::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* Menu bar */
+    #menubar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 32px;
+      background: rgba(18, 24, 32, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 0.78rem;
+      z-index: 100;
+      font-family: var(--font-mono);
+    }
+    #menubar .brand { color: var(--accent); font-weight: 600; margin-right: 16px; }
+    #menubar .menu-item { padding: 4px 10px; border-radius: 4px; cursor: default; color: var(--muted); }
+    #menubar .menu-item:hover { background: var(--surface-2); color: var(--text); }
+    #menubar .spacer { flex: 1; }
+    #menubar .clock { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    /* Desktop icons */
+    #icons {
+      position: fixed;
+      top: 48px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+    .desk-icon {
+      width: 76px;
+      padding: 8px 4px;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .desk-icon:hover, .desk-icon.selected { background: rgba(57, 186, 230, 0.15); }
+    .desk-icon .ico {
+      width: 44px; height: 44px;
+      margin: 0 auto 6px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .desk-icon span { font-size: 0.68rem; color: var(--muted); line-height: 1.2; display: block; word-break: break-word; }
+
+    /* Windows */
+    #windows { position: fixed; inset: 32px 0 48px 0; pointer-events: none; z-index: 50; }
+    .win {
+      position: absolute;
+      min-width: 320px;
+      min-height: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      pointer-events: all;
+      overflow: hidden;
+      resize: both;
+    }
+    .win.maximized {
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 0;
+      resize: none;
+    }
+    .win.hidden { display: none; }
+    .win.focused { z-index: 200; border-color: rgba(57, 186, 230, 0.4); }
+    .win-titlebar {
+      height: 36px;
+      background: var(--titlebar);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      cursor: grab;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+    .win.focused .win-titlebar { cursor: grabbing; }
+    .win-titlebar .title { flex: 1; color: var(--muted); }
+    .win-titlebar .title strong { color: var(--text); font-weight: 500; }
+    .win-controls { display: flex; gap: 6px; }
+    .win-btn {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .win-btn.close { background: var(--danger); }
+    .win-btn.min { background: var(--warn); }
+    .win-btn.max { background: var(--accent-2); }
+    .win-body {
+      flex: 1;
+      overflow: auto;
+      padding: 16px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      user-select: text;
+    }
+    .win-body::-webkit-scrollbar { width: 6px; }
+    .win-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Terminal style content */
+    .prompt-line { font-family: var(--font-mono); font-size: 0.8rem; margin-bottom: 4px; }
+    .prompt-line .user { color: var(--accent-2); }
+    .prompt-line .path { color: var(--accent); }
+    .prompt-line .sym { color: var(--purple); }
+    h2.term { font-family: var(--font-mono); font-size: 1rem; color: var(--accent); margin-bottom: 12px; font-weight: 500; }
+    h3.term { font-family: var(--font-mono); font-size: 0.85rem; color: var(--warn); margin: 16px 0 8px; font-weight: 500; }
+    p { color: var(--muted); margin-bottom: 8px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--accent-2);
+    }
+    .tag.stack { color: var(--accent); }
+    .tag.feature { color: var(--purple); border-color: rgba(198, 120, 221, 0.3); }
+
+    /* Repo cards */
+    .repo-grid { display: grid; gap: 12px; }
+    .repo-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      transition: border-color 0.2s;
+    }
+    .repo-card:hover { border-color: rgba(57, 186, 230, 0.35); }
+    .repo-card.featured { border-color: rgba(127, 217, 98, 0.35); }
+    .repo-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .repo-name { font-family: var(--font-mono); font-size: 0.9rem; color: var(--text); }
+    .repo-name a { color: inherit; }
+    .repo-stats { display: flex; gap: 10px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
+    .repo-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+    .repo-updates {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+    .update-row { display: flex; gap: 8px; padding: 4px 0; color: var(--muted); }
+    .update-row .dot { color: var(--accent-2); flex-shrink: 0; }
+    .update-row .msg { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .update-row .time { color: var(--muted); flex-shrink: 0; }
+    .sync-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: var(--surface-2);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+    .sync-bar .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .sync-bar.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover { background: var(--border); border-color: var(--accent); }
+    .btn.primary { background: rgba(57, 186, 230, 0.15); border-color: var(--accent); color: var(--accent); }
+
+    .settings-field { margin-bottom: 12px; }
+    .settings-field label { display: block; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; }
+    .settings-field input {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+    .settings-field input:focus { outline: none; border-color: var(--accent); }
+  .hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+
+    /* Taskbar */
+    #taskbar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 48px;
+      background: rgba(18, 24, 32, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+      z-index: 100;
+    }
+    .task-btn {
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .task-btn:hover, .task-btn.active {
+      background: var(--surface-2);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .task-btn .indicator {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      display: none;
+    }
+    .task-btn.running .indicator { display: block; }
+
+    /* Experience list */
+    .exp-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .exp-item:last-child { border-bottom: none; }
+    .exp-item .role { color: var(--text); font-weight: 500; }
+    .exp-item .company { color: var(--accent); font-family: var(--font-mono); font-size: 0.8rem; }
+    .exp-item .period { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+
+    @media (max-width: 640px) {
+      #icons { flex-direction: row; flex-wrap: wrap; top: 40px; left: 8px; right: 8px; }
+      .desk-icon { width: 64px; }
+      .win { width: calc(100% - 16px) !important; left: 8px !important; max-height: calc(100% - 96px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Boot Screen -->
+  <div id="boot">
+    <div class="logo">portfolio.os</div>
+    <div class="bar-wrap"><div class="bar" id="boot-bar"></div></div>
+    <div class="log" id="boot-log">Initializing kernel...</div>
+  </div>
+
+  <div id="desktop">
+    <header id="menubar">
+      <span class="brand">◆ portfolio.os</span>
+      <span class="menu-item" data-open="about">About</span>
+      <span class="menu-item" data-open="github">GitHub</span>
+      <span class="menu-item" data-open="stack">Stack</span>
+      <span class="menu-item" data-open="terminal">Terminal</span>
+      <span class="spacer"></span>
+      <span class="clock" id="clock">--:--</span>
+    </header>
+
+    <nav id="icons" aria-label="Desktop shortcuts"></nav>
+    <div id="windows"></div>
+  </div>
+
+  <footer id="taskbar"></footer>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  CONFIG — แก้ข้อมูลตรงนี้
+    // ═══════════════════════════════════════════════════════════════
+    const CONFIG = {
+      profile: {
+        name: "Sudawan Boontub",
+        handle: "Sudawan",
+        role: "Fullstack Developer",
+        tagline: "สร้าง web apps ตั้งแต่ API ถึง UI — ชอบ clean code และ DX ที่ดี",
+        email: "sudawan91@gmail.com",
+        location: "Thailand",
+        links: {
+          github: "https://github.com/Markikie",
+          linkedin: "",
+          website: "",
+        },
+      },
+      stack: [
+        "TypeScript", "React", "Next.js", "Node.js", "PostgreSQL",
+        "Docker", "Git", "REST", "GraphQL", "Tailwind CSS",
+      ],
+      experience: [
+        {
+          role: "Fullstack Developer",
+          company: "Company / Freelance",
+          period: "2023 — Present",
+          bullets: ["พัฒนา web application แบบ end-to-end", "ออกแบบ API และ database schema"],
+        },
+      ],
+      // repos ที่ต้องการแสดง — features = สิ่งที่ mark ไว้ (แสดงเป็น badge)
+      repos: [
+        {
+          owner: "Markikie",
+          name: "portfolio",
+          displayName: "portfolio",
+          features: ["OS Shell UI", "GitHub Live Sync", "Single HTML"],
+          featured: true,
+        },
+        // เพิ่ม repo อื่น:
+        // { owner: "Markikie", name: "my-app", features: ["Auth", "Dashboard"], featured: false },
+      ],
+    };
+
+    const APPS = [
+      { id: "about", icon: "👤", label: "About.me", title: "about.me — profile" },
+      { id: "github", icon: "🐙", label: "GitHub", title: "github.app — repositories" },
+      { id: "stack", icon: "⚙️", label: "Stack", title: "stack.cfg — tech stack" },
+      { id: "experience", icon: "📋", label: "Experience", title: "work.log — experience" },
+      { id: "terminal", icon: "⌨️", label: "Terminal", title: "bash — portfolio.os" },
+      { id: "settings", icon: "🔧", label: "Settings", title: "settings — config" },
+    ];
+
+    const GITHUB_TOKEN_KEY = "portfolio_github_token";
+    const state = { zIndex: 10, windows: {}, repoData: {} };
+
+    // ─── Boot ─────────────────────────────────────────────────────
+    const bootLogs = [
+      "Loading modules...",
+      "Mounting /home/dev...",
+      "Connecting to github.com...",
+      "Starting window manager...",
+      "Ready.",
+    ];
+    async function boot() {
+      const bar = document.getElementById("boot-bar");
+      const log = document.getElementById("boot-log");
+      for (let i = 0; i <= 100; i += 5) {
+        bar.style.width = i + "%";
+        if (i % 25 === 0) log.textContent = bootLogs[Math.min(i / 25, bootLogs.length - 1)];
+        await sleep(40);
+      }
+      document.getElementById("boot").classList.add("hide");
+      openWindow("about");
+      syncAllRepos();
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ─── Clock ────────────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("clock").textContent = now.toLocaleString("th-TH", {
+        weekday: "short", hour: "2-digit", minute: "2-digit",
+      });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ─── GitHub API ───────────────────────────────────────────────
+    function getToken() {
+      return localStorage.getItem(GITHUB_TOKEN_KEY) || "";
+    }
+
+    async function ghFetch(path) {
+      const headers = { Accept: "application/vnd.github+json" };
+      const token = getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(`https://api.github.com${path}`, { headers });
+      if (res.status === 403) {
+        const remaining = res.headers.get("X-RateLimit-Remaining");
+        if (remaining === "0") throw new Error("GitHub API rate limit — ใส่ token ใน Settings");
+      }
+      if (!res.ok) throw new Error(`GitHub ${res.status}: ${path}`);
+      return res.json();
+    }
+
+    async function fetchRepo(owner, name) {
+      const [repo, commits] = await Promise.all([
+        ghFetch(`/repos/${owner}/${name}`),
+        ghFetch(`/repos/${owner}/${name}/commits?per_page=3`).catch(() => []),
+      ]);
+      let release = null;
+      try {
+        release = await ghFetch(`/repos/${owner}/${name}/releases/latest`);
+      } catch { /* no release */ }
+      return { repo, commits, release };
+    }
+
+    async function syncAllRepos() {
+      const statusEl = document.getElementById("sync-status");
+      if (statusEl) {
+        statusEl.classList.add("loading");
+        statusEl.querySelector(".sync-text").textContent = "Syncing with GitHub...";
+      }
+      const results = await Promise.allSettled(
+        CONFIG.repos.map(async (r) => {
+          const key = `${r.owner}/${r.name}`;
+          const data = await fetchRepo(r.owner, r.name);
+          state.repoData[key] = { ...r, ...data };
+          return key;
+        })
+      );
+      if (statusEl) {
+        statusEl.classList.remove("loading");
+        const failed = results.filter(x => x.status === "rejected").length;
+        statusEl.querySelector(".sync-text").textContent = failed
+          ? `Synced (${failed} failed — check token or repo names)`
+          : `Last sync: ${new Date().toLocaleTimeString("th-TH")}`;
+      }
+      renderGitHubWindow();
+    }
+
+    function timeAgo(dateStr) {
+      const d = new Date(dateStr);
+      const sec = Math.floor((Date.now() - d) / 1000);
+      if (sec < 60) return "just now";
+      if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+      if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
+      return `${Math.floor(sec / 86400)}d ago`;
+    }
+
+    function formatDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString("th-TH", {
+        year: "numeric", month: "short", day: "numeric",
+      });
+    }
+
+    // ─── Window Manager ───────────────────────────────────────────
+    function createDesktop() {
+      const icons = document.getElementById("icons");
+      const taskbar = document.getElementById("taskbar");
+      APPS.forEach(app => {
+        const icon = document.createElement("div");
+        icon.className = "desk-icon";
+        icon.innerHTML = `<div class="ico">${app.icon}</div><span>${app.label}</span>`;
+        icon.addEventListener("dblclick", () => openWindow(app.id));
+        icons.appendChild(icon);
+
+        const btn = document.createElement("button");
+        btn.className = "task-btn";
+        btn.dataset.app = app.id;
+        btn.innerHTML = `<span class="indicator"></span>${app.icon} ${app.label}`;
+        btn.addEventListener("click", () => toggleWindow(app.id));
+        taskbar.appendChild(btn);
+      });
+
+      document.querySelectorAll("#menubar .menu-item").forEach(el => {
+        el.addEventListener("click", () => openWindow(el.dataset.open));
+      });
+
+      APPS.forEach(app => createWindow(app));
+    }
+
+    function createWindow(app) {
+      const container = document.getElementById("windows");
+      const win = document.createElement("div");
+      win.className = "win hidden";
+      win.id = `win-${app.id}`;
+      win.style.width = app.id === "github" ? "720px" : "520px";
+      win.style.height = app.id === "github" ? "520px" : "400px";
+      win.style.left = (80 + APPS.indexOf(app) * 24) + "px";
+      win.style.top = (60 + APPS.indexOf(app) * 24) + "px";
+
+      win.innerHTML = `
+        <div class="win-titlebar">
+          <span class="title"><strong>${app.title.split("—")[0].trim()}</strong> — ${app.title.split("—")[1]?.trim() || ""}</span>
+          <div class="win-controls">
+            <button class="win-btn min" data-action="min" aria-label="Minimize"></button>
+            <button class="win-btn max" data-action="max" aria-label="Maximize"></button>
+            <button class="win-btn close" data-action="close" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="win-body" id="body-${app.id}"></div>
+      `;
+
+      container.appendChild(win);
+      state.windows[app.id] = win;
+
+      win.querySelector(".win-btn.close").addEventListener("click", () => closeWindow(app.id));
+      win.querySelector(".win-btn.min").addEventListener("click", () => minimizeWindow(app.id));
+      win.querySelector(".win-btn.max").addEventListener("click", () => {
+        win.classList.toggle("maximized");
+      });
+      win.addEventListener("mousedown", () => focusWindow(app.id));
+      makeDraggable(win);
+
+      renderWindowContent(app.id);
+    }
+
+    function makeDraggable(win) {
+      const bar = win.querySelector(".win-titlebar");
+      let dragging = false, ox, oy, startX, startY;
+      bar.addEventListener("mousedown", e => {
+        if (win.classList.contains("maximized")) return;
+        if (e.target.closest(".win-btn")) return;
+        dragging = true;
+        ox = win.offsetLeft;
+        oy = win.offsetTop;
+        startX = e.clientX;
+        startY = e.clientY;
+        e.preventDefault();
+      });
+      document.addEventListener("mousemove", e => {
+        if (!dragging) return;
+        win.style.left = (ox + e.clientX - startX) + "px";
+        win.style.top = (oy + e.clientY - startY) + "px";
+      });
+      document.addEventListener("mouseup", () => { dragging = false; });
+    }
+
+    function openWindow(id) {
+      const win = state.windows[id];
+      if (!win) return;
+      win.classList.remove("hidden");
+      focusWindow(id);
+      document.querySelector(`.task-btn[data-app="${id}"]`)?.classList.add("running", "active");
+    }
+
+    function closeWindow(id) {
+      state.windows[id]?.classList.add("hidden");
+      document.querySelector(`.task-btn[data-app="${id}"]`)?.classList.remove("running", "active");
+    }
+
+    function minimizeWindow(id) {
+      state.windows[id]?.classList.add("hidden");
+      document.querySelector(`.task-btn[data-app="${id}"]`)?.classList.remove("active");
+    }
+
+    function toggleWindow(id) {
+      const win = state.windows[id];
+      if (!win) return;
+      if (win.classList.contains("hidden")) openWindow(id);
+      else if (win.classList.contains("focused")) minimizeWindow(id);
+      else focusWindow(id);
+    }
+
+    function focusWindow(id) {
+      Object.values(state.windows).forEach(w => w.classList.remove("focused"));
+      const win = state.windows[id];
+      if (!win) return;
+      win.classList.add("focused");
+      win.style.zIndex = ++state.zIndex;
+      document.querySelectorAll(".task-btn").forEach(b => b.classList.remove("active"));
+      document.querySelector(`.task-btn[data-app="${id}"]`)?.classList.add("active", "running");
+    }
+
+  function renderWindowContent(id) {
+      const body = document.getElementById(`body-${id}`);
+      if (!body) return;
+      const p = CONFIG.profile;
+
+      switch (id) {
+        case "about":
+          body.innerHTML = `
+            <div class="prompt-line"><span class="user">${p.handle}</span><span class="sym">@</span> <span class="path">~/profile</span> $ cat about.txt</div>
+            <h2 class="term">${p.name}</h2>
+            <p style="color:var(--text);font-size:1rem;margin-bottom:4px">${p.role}</p>
+            <p>${p.tagline}</p>
+            <p>📍 ${p.location} · ✉️ <a href="mailto:${p.email}">${p.email}</a></p>
+            <div class="tag-row">
+              <a class="tag stack" href="${p.links.github}" target="_blank" rel="noopener">GitHub</a>
+              ${p.links.linkedin ? `<a class="tag stack" href="${p.links.linkedin}" target="_blank" rel="noopener">LinkedIn</a>` : ""}
+            </div>
+            <h3 class="term">// quick commands</h3>
+            <p class="prompt-line" style="color:var(--muted)">open github · open stack · open terminal</p>
+          `;
+          break;
+
+        case "github":
+          body.innerHTML = `
+            <div id="sync-status" class="sync-bar">
+              <span class="spinner"></span>
+              <span class="sync-text">Waiting for sync...</span>
+              <span style="flex:1"></span>
+              <button class="btn primary" id="btn-sync">↻ Sync</button>
+            </div>
+            <div id="repo-grid" class="repo-grid"></div>
+          `;
+          document.getElementById("btn-sync")?.addEventListener("click", syncAllRepos);
+          renderGitHubWindow();
+          break;
+
+        case "stack":
+          body.innerHTML = `
+            <div class="prompt-line"><span class="user">dev</span><span class="sym">$</span> <span class="path">cat /etc/stack</span></div>
+            <h2 class="term">Tech Stack</h2>
+            <div class="tag-row">${CONFIG.stack.map(s => `<span class="tag stack">${s}</span>`).join("")}</div>
+          `;
+          break;
+
+        case "experience":
+          body.innerHTML = `
+            <div class="prompt-line"><span class="user">dev</span><span class="sym">$</span> <span class="path">less work.log</span></div>
+            <h2 class="term">Experience</h2>
+            ${CONFIG.experience.map(e => `
+              <div class="exp-item">
+                <div class="role">${e.role}</div>
+                <div class="company">${e.company}</div>
+                <div class="period">${e.period}</div>
+                <ul style="margin-top:8px;padding-left:18px;color:var(--muted);font-size:0.8rem">
+                  ${e.bullets.map(b => `<li>${b}</li>`).join("")}
+                </ul>
+              </div>
+            `).join("")}
+          `;
+          break;
+
+        case "terminal":
+          body.innerHTML = `
+            <div id="term-out" style="font-family:var(--font-mono);font-size:0.78rem;min-height:200px"></div>
+            <div style="display:flex;gap:6px;margin-top:12px">
+              <span style="font-family:var(--font-mono);color:var(--accent-2)">${p.handle}@portfolio</span>
+              <span style="color:var(--purple)">$</span>
+              <input id="term-in" type="text" style="flex:1;background:transparent;border:none;color:var(--text);font-family:var(--font-mono);font-size:0.78rem;outline:none" placeholder="help" autocomplete="off" />
+            </div>
+          `;
+          initTerminal();
+          break;
+
+        case "settings":
+          body.innerHTML = `
+            <h2 class="term">Settings</h2>
+            <div class="settings-field">
+              <label>GitHub Personal Access Token (optional)</label>
+              <input type="password" id="gh-token" placeholder="ghp_..." value="${getToken()}" />
+              <p class="hint">เพิ่ม rate limit เป็น 5,000 req/hr — สร้างที่ GitHub → Settings → Developer settings → PAT (public_repo scope)</p>
+            </div>
+            <button class="btn primary" id="save-token">Save Token</button>
+            <button class="btn" id="clear-token" style="margin-left:8px">Clear</button>
+          `;
+          document.getElementById("save-token")?.addEventListener("click", () => {
+            localStorage.setItem(GITHUB_TOKEN_KEY, document.getElementById("gh-token").value.trim());
+            termLog("Token saved. Run sync from GitHub app.");
+          });
+          document.getElementById("clear-token")?.addEventListener("click", () => {
+            localStorage.removeItem(GITHUB_TOKEN_KEY);
+            document.getElementById("gh-token").value = "";
+          });
+          break;
+      }
+    }
+
+    function renderGitHubWindow() {
+      const grid = document.getElementById("repo-grid");
+      if (!grid) return;
+
+      if (!CONFIG.repos.length) {
+        grid.innerHTML = `<p>เพิ่ม repos ใน CONFIG.repos ใน index.html</p>`;
+        return;
+      }
+
+      grid.innerHTML = CONFIG.repos.map(r => {
+        const key = `${r.owner}/${r.name}`;
+        const data = state.repoData[key];
+        const display = r.displayName || r.name;
+
+        if (!data) {
+          return `<div class="repo-card ${r.featured ? "featured" : ""}">
+            <div class="repo-name">${r.owner}/${display}</div>
+            <p class="repo-desc">Loading...</p>
+          </div>`;
+        }
+
+        const { repo, commits, release } = data;
+        const features = (r.features || []).map(f => `<span class="tag feature">★ ${f}</span>`).join("");
+
+        const updates = [];
+        if (release) {
+          updates.push({ msg: `Release ${release.tag_name}: ${release.name || ""}`, time: release.published_at });
+        }
+        (commits || []).forEach(c => {
+          updates.push({
+            msg: c.commit.message.split("\n")[0],
+            time: c.commit.author.date,
+            author: c.commit.author.name,
+          });
+        });
+        if (!updates.length && repo.pushed_at) {
+          updates.push({ msg: "Last push", time: repo.pushed_at });
+        }
+
+        return `
+          <div class="repo-card ${r.featured ? "featured" : ""}">
+            <div class="repo-head">
+              <div class="repo-name">
+                <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
+                ${r.featured ? ' <span style="color:var(--accent-2);font-size:0.7rem">● featured</span>' : ""}
+              </div>
+              <div class="repo-stats">
+                <span>★ ${repo.stargazers_count}</span>
+                <span>⑂ ${repo.forks_count}</span>
+              </div>
+            </div>
+            <p class="repo-desc">${repo.description || "No description"}</p>
+            <div class="tag-row">${features}
+              ${repo.language ? `<span class="tag">${repo.language}</span>` : ""}
+            </div>
+            <div class="repo-updates">
+              <div style="color:var(--warn);margin-bottom:6px">⟳ Updates</div>
+              <div style="color:var(--muted);margin-bottom:6px">Pushed ${formatDate(repo.pushed_at)} · Updated ${timeAgo(repo.updated_at)}</div>
+              ${updates.map(u => `
+                <div class="update-row">
+                  <span class="dot">›</span>
+                  <span class="msg">${escapeHtml(u.msg)}</span>
+                  <span class="time">${timeAgo(u.time)}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // ─── Terminal ─────────────────────────────────────────────────
+    const termHistory = [];
+    function initTerminal() {
+      const input = document.getElementById("term-in");
+      const out = document.getElementById("term-out");
+      if (!input || !out) return;
+      termLog("portfolio.os terminal v1.0 — type 'help'");
+      input.addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        const cmd = input.value.trim();
+        input.value = "";
+        if (!cmd) return;
+        termHistory.push(cmd);
+        termLog(`${CONFIG.profile.handle}@portfolio $ ${cmd}`);
+        runCommand(cmd.toLowerCase());
+      });
+    }
+
+    function termLog(text, color) {
+      const out = document.getElementById("term-out");
+      if (!out) return;
+      const line = document.createElement("div");
+      line.style.color = color || "var(--muted)";
+      line.style.marginBottom = "4px";
+      line.textContent = text;
+      out.appendChild(line);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    function runCommand(cmd) {
+      const cmds = {
+        help: () => termLog("Commands: help, about, github, stack, experience, repos, sync, clear, open <app>"),
+        about: () => { openWindow("about"); termLog("Opened about.me"); },
+        github: () => { openWindow("github"); termLog("Opened github.app"); },
+        stack: () => { openWindow("stack"); termLog("Opened stack.cfg"); },
+        experience: () => { openWindow("experience"); termLog("Opened work.log"); },
+        repos: () => {
+          CONFIG.repos.forEach(r => termLog(`  ${r.owner}/${r.name} [${(r.features || []).join(", ")}]`));
+        },
+        sync: () => { syncAllRepos(); termLog("Syncing GitHub...", "var(--accent)"); },
+        clear: () => { document.getElementById("term-out").innerHTML = ""; },
+      };
+      if (cmd.startsWith("open ")) {
+        const app = cmd.slice(5).trim();
+        if (state.windows[app]) { openWindow(app); termLog(`Opened ${app}`); }
+        else termLog(`Unknown app: ${app}`, "var(--danger)");
+        return;
+      }
+      if (cmds[cmd]) cmds[cmd]();
+      else termLog(`command not found: ${cmd}`, "var(--danger)");
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────
+    createDesktop();
+    boot();
+  </script>
+</body>
+</html>
