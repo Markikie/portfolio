@@ -146,6 +146,7 @@
       pointer-events: all;
       overflow: hidden;
       resize: both;
+      transform-origin: top left;
     }
     .win.maximized {
       inset: 0 !important;
@@ -154,7 +155,14 @@
       border-radius: 0;
       resize: none;
     }
-    .win.hidden { display: none; }
+    .win {
+      transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+    .win.hidden {
+      opacity: 0;
+      transform: scale(0.96) translateY(6px);
+      pointer-events: none;
+    }
     .win.focused { z-index: 200; border-color: rgba(57, 186, 230, 0.4); }
     .win-titlebar {
       height: 36px;
@@ -280,20 +288,23 @@
     .btn:hover { background: var(--border); border-color: var(--accent); }
     .btn.primary { background: rgba(57, 186, 230, 0.15); border-color: var(--accent); color: var(--accent); }
 
-    .settings-field { margin-bottom: 12px; }
-    .settings-field label { display: block; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; }
-    .settings-field input {
-      width: 100%;
-      padding: 8px 10px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
+
+    /* Avatar */
+    .avatar {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex; align-items: center; justify-content: center;
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(57,186,230,0.25);
+      letter-spacing: 0.05em;
     }
-    .settings-field input:focus { outline: none; border-color: var(--accent); }
-  .hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+    .about-header { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .about-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 
     /* Taskbar */
     #taskbar {
@@ -388,40 +399,63 @@
       profile: {
         name: "Sudawan Boontub",
         handle: "Sudawan",
-        role: "Fullstack Developer",
-        tagline: "สร้าง web apps ตั้งแต่ API ถึง UI — ชอบ clean code และ DX ที่ดี",
+        role: "Backend / Full Stack Developer",
+        tagline: "Backend-focused full stack developer — ชำนาญ Node.js, TypeScript, PostgreSQL และ AI-powered platforms",
         email: "sudawan91@gmail.com",
-        location: "Thailand",
+        location: "Bangkok, Thailand",
         links: {
           github: "https://github.com/Markikie",
-          linkedin: "",
+          linkedin: "https://linkedin.com/in/sudawan-boontub",
           website: "",
         },
       },
-      stack: [
-        "TypeScript", "React", "Next.js", "Node.js", "PostgreSQL",
-        "Docker", "Git", "REST", "GraphQL", "Tailwind CSS",
-      ],
+      stack: {
+        "Languages":     ["JavaScript", "TypeScript", "Go"],
+        "Frontend":      ["React", "Next.js", "Tailwind CSS"],
+        "Backend":       ["Node.js", "Express.js", "Elysia.js", "REST API", "Echo", "Fiber"],
+        "Database":      ["PostgreSQL", "MySQL", "MongoDB"],
+        "Cloud & Tools": ["AWS", "GCP", "Vercel", "Docker", "Redis", "RabbitMQ", "Kafka", "Git"],
+      },
       experience: [
         {
-          role: "Fullstack Developer",
-          company: "Company / Freelance",
-          period: "2023 — Present",
-          bullets: ["พัฒนา web application แบบ end-to-end", "ออกแบบ API และ database schema"],
+          role: "Software Engineer",
+          company: "Botnoi Group",
+          period: "2026 — Present",
+          bullets: [
+            "— (เพิ่มรายละเอียดทีหลัง)",
+          ],
+        },
+        {
+          role: "Full Stack Developer — AI Imaging Platform",
+          company: "IMAI Group Co., Ltd.",
+          period: "Sep 2025 — Mar 2026",
+          bullets: [
+            "พัฒนา full-stack สำหรับ Imgentic และ Imsnap (AI image generation platform)",
+            "ออกแบบ RESTful APIs, background jobs และ queue systems สำหรับ async image processing",
+            "Integrate AI services และ S3-compatible storage สำหรับ scalable image handling",
+            "จัดการ PostgreSQL database รวมถึง performance optimization และแก้ production issues",
+          ],
+        },
+        {
+          role: "Production Planner",
+          company: "Print Divas Company Limited",
+          period: "Sep 2021 — Jul 2023",
+          bullets: [
+            "วางแผนการผลิตและจัดสรรทรัพยากรเพื่อเพิ่มประสิทธิภาพการดำเนินงาน",
+            "ประสานงานกับทีม procurement, logistics และ quality control",
+            "Implement ระบบ planning software workflow ใหม่เพื่อเพิ่ม visibility ของทีม",
+          ],
         },
       ],
-      // repos ที่ต้องการแสดง — features = สิ่งที่ mark ไว้ (แสดงเป็น badge)
-      repos: [
+      pinnedRepos: [
         {
           owner: "Markikie",
           name: "portfolio",
           displayName: "portfolio",
           features: ["OS Shell UI", "GitHub Live Sync", "Single HTML"],
-          featured: true,
         },
-        // เพิ่ม repo อื่น:
-        // { owner: "Markikie", name: "my-app", features: ["Auth", "Dashboard"], featured: false },
       ],
+      githubUsername: "Markikie",
     };
 
     const APPS = [
@@ -430,11 +464,9 @@
       { id: "stack", icon: "⚙️", label: "Stack", title: "stack.cfg — tech stack" },
       { id: "experience", icon: "📋", label: "Experience", title: "work.log — experience" },
       { id: "terminal", icon: "⌨️", label: "Terminal", title: "bash — portfolio.os" },
-      { id: "settings", icon: "🔧", label: "Settings", title: "settings — config" },
     ];
 
-    const GITHUB_TOKEN_KEY = "portfolio_github_token";
-    const state = { zIndex: 10, windows: {}, repoData: {} };
+    const state = { zIndex: 10, windows: {}, repoData: {}, allRepos: [] };
 
     // ─── Boot ─────────────────────────────────────────────────────
     const bootLogs = [
@@ -470,18 +502,12 @@
     updateClock();
 
     // ─── GitHub API ───────────────────────────────────────────────
-    function getToken() {
-      return localStorage.getItem(GITHUB_TOKEN_KEY) || "";
-    }
-
     async function ghFetch(path) {
       const headers = { Accept: "application/vnd.github+json" };
-      const token = getToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch(`https://api.github.com${path}`, { headers });
       if (res.status === 403) {
         const remaining = res.headers.get("X-RateLimit-Remaining");
-        if (remaining === "0") throw new Error("GitHub API rate limit — ใส่ token ใน Settings");
+        if (remaining === "0") throw new Error("GitHub API rate limit exceeded (60 req/hr)");
       }
       if (!res.ok) throw new Error(`GitHub ${res.status}: ${path}`);
       return res.json();
@@ -499,27 +525,62 @@
       return { repo, commits, release };
     }
 
+    async function fetchAllUserRepos(username) {
+      const repos = [];
+      let page = 1;
+      while (true) {
+        const batch = await ghFetch(`/users/${username}/repos?sort=pushed&per_page=100&page=${page}`);
+        repos.push(...batch);
+        if (batch.length < 100) break;
+        page++;
+      }
+      return repos;
+    }
+
     async function syncAllRepos() {
       const statusEl = document.getElementById("sync-status");
       if (statusEl) {
         statusEl.classList.add("loading");
         statusEl.querySelector(".sync-text").textContent = "Syncing with GitHub...";
       }
-      const results = await Promise.allSettled(
-        CONFIG.repos.map(async (r) => {
-          const key = `${r.owner}/${r.name}`;
-          const data = await fetchRepo(r.owner, r.name);
-          state.repoData[key] = { ...r, ...data };
-          return key;
-        })
-      );
-      if (statusEl) {
-        statusEl.classList.remove("loading");
-        const failed = results.filter(x => x.status === "rejected").length;
-        statusEl.querySelector(".sync-text").textContent = failed
-          ? `Synced (${failed} failed — check token or repo names)`
-          : `Last sync: ${new Date().toLocaleTimeString("th-TH")}`;
+
+      try {
+        // fetch all public repos from GitHub
+        const allUserRepos = await fetchAllUserRepos(CONFIG.githubUsername);
+        state.allRepos = allUserRepos;
+
+        // fetch detailed data for pinned repos (commits + release)
+        const pinnedKeys = new Set(CONFIG.pinnedRepos.map(r => `${r.owner}/${r.name}`));
+        const pinnedResults = await Promise.allSettled(
+          CONFIG.pinnedRepos.map(async (r) => {
+            const key = `${r.owner}/${r.name}`;
+            const data = await fetchRepo(r.owner, r.name);
+            state.repoData[key] = { ...r, featured: true, ...data };
+          })
+        );
+
+        // store non-pinned repos as lightweight entries (no extra API call)
+        allUserRepos.forEach(repo => {
+          const key = `${repo.owner.login}/${repo.name}`;
+          if (!pinnedKeys.has(key)) {
+            state.repoData[key] = { owner: repo.owner.login, name: repo.name, repo, commits: [], release: null };
+          }
+        });
+
+        if (statusEl) {
+          statusEl.classList.remove("loading");
+          const failed = pinnedResults.filter(x => x.status === "rejected").length;
+          statusEl.querySelector(".sync-text").textContent = failed
+            ? `Synced ${allUserRepos.length} repos (${failed} pinned failed)`
+            : `${allUserRepos.length} repos · Last sync: ${new Date().toLocaleTimeString("th-TH")}`;
+        }
+      } catch (err) {
+        if (statusEl) {
+          statusEl.classList.remove("loading");
+          statusEl.querySelector(".sync-text").textContent = `Error: ${err.message}`;
+        }
       }
+
       renderGitHubWindow();
     }
 
@@ -663,21 +724,37 @@
       const p = CONFIG.profile;
 
       switch (id) {
-        case "about":
+        case "about": {
+          const initials = p.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
           body.innerHTML = `
-            <div class="prompt-line"><span class="user">${p.handle}</span><span class="sym">@</span> <span class="path">~/profile</span> $ cat about.txt</div>
-            <h2 class="term">${p.name}</h2>
-            <p style="color:var(--text);font-size:1rem;margin-bottom:4px">${p.role}</p>
-            <p>${p.tagline}</p>
-            <p>📍 ${p.location} · ✉️ <a href="mailto:${p.email}">${p.email}</a></p>
-            <div class="tag-row">
-              <a class="tag stack" href="${p.links.github}" target="_blank" rel="noopener">GitHub</a>
-              ${p.links.linkedin ? `<a class="tag stack" href="${p.links.linkedin}" target="_blank" rel="noopener">LinkedIn</a>` : ""}
+            <div class="prompt-line"><span class="user">${p.handle}</span><span class="sym">@</span><span class="path">~/profile</span> $ cat about.txt</div>
+            <div class="about-header">
+              <div class="avatar">${initials}</div>
+              <div>
+                <h2 class="term" style="margin-bottom:2px">${p.name}</h2>
+                <p style="color:var(--text);font-size:0.92rem;margin-bottom:6px">${p.role}</p>
+                <p style="margin-bottom:6px">${p.tagline}</p>
+                <p style="font-size:0.78rem">📍 ${p.location} · <a href="mailto:${p.email}">${p.email}</a></p>
+              </div>
             </div>
-            <h3 class="term">// quick commands</h3>
-            <p class="prompt-line" style="color:var(--muted)">open github · open stack · open terminal</p>
+            <div class="tag-row">
+              <a class="tag stack" href="${p.links.github}" target="_blank" rel="noopener">⌥ GitHub</a>
+              ${p.links.linkedin ? `<a class="tag stack" href="${p.links.linkedin}" target="_blank" rel="noopener">in LinkedIn</a>` : ""}
+              ${p.links.website ? `<a class="tag stack" href="${p.links.website}" target="_blank" rel="noopener">🌐 Website</a>` : ""}
+            </div>
+            <div class="about-actions">
+              <button class="btn" id="ab-github">🐙 GitHub</button>
+              <button class="btn" id="ab-stack">⚙️ Stack</button>
+              <button class="btn" id="ab-exp">📋 Experience</button>
+              <button class="btn" id="ab-term">⌨️ Terminal</button>
+            </div>
           `;
+          document.getElementById("ab-github")?.addEventListener("click", () => openWindow("github"));
+          document.getElementById("ab-stack")?.addEventListener("click", () => openWindow("stack"));
+          document.getElementById("ab-exp")?.addEventListener("click", () => openWindow("experience"));
+          document.getElementById("ab-term")?.addEventListener("click", () => openWindow("terminal"));
           break;
+        }
 
         case "github":
           body.innerHTML = `
@@ -697,7 +774,10 @@
           body.innerHTML = `
             <div class="prompt-line"><span class="user">dev</span><span class="sym">$</span> <span class="path">cat /etc/stack</span></div>
             <h2 class="term">Tech Stack</h2>
-            <div class="tag-row">${CONFIG.stack.map(s => `<span class="tag stack">${s}</span>`).join("")}</div>
+            ${Object.entries(CONFIG.stack).map(([cat, items]) => `
+              <h3 class="term">// ${cat}</h3>
+              <div class="tag-row">${items.map(s => `<span class="tag stack">${s}</span>`).join("")}</div>
+            `).join("")}
           `;
           break;
 
@@ -730,98 +810,94 @@
           initTerminal();
           break;
 
-        case "settings":
-          body.innerHTML = `
-            <h2 class="term">Settings</h2>
-            <div class="settings-field">
-              <label>GitHub Personal Access Token (optional)</label>
-              <input type="password" id="gh-token" placeholder="ghp_..." value="${getToken()}" />
-              <p class="hint">เพิ่ม rate limit เป็น 5,000 req/hr — สร้างที่ GitHub → Settings → Developer settings → PAT (public_repo scope)</p>
-            </div>
-            <button class="btn primary" id="save-token">Save Token</button>
-            <button class="btn" id="clear-token" style="margin-left:8px">Clear</button>
-          `;
-          document.getElementById("save-token")?.addEventListener("click", () => {
-            localStorage.setItem(GITHUB_TOKEN_KEY, document.getElementById("gh-token").value.trim());
-            termLog("Token saved. Run sync from GitHub app.");
-          });
-          document.getElementById("clear-token")?.addEventListener("click", () => {
-            localStorage.removeItem(GITHUB_TOKEN_KEY);
-            document.getElementById("gh-token").value = "";
-          });
-          break;
       }
+    }
+
+    function renderRepoCard(r, data) {
+      const display = r.displayName || r.name;
+      if (!data || !data.repo) {
+        return `<div class="repo-card ${r.featured ? "featured" : ""}">
+          <div class="repo-name">${r.owner || CONFIG.githubUsername}/${display}</div>
+          <p class="repo-desc">Loading...</p>
+        </div>`;
+      }
+      const { repo, commits, release } = data;
+      const features = (r.features || []).map(f => `<span class="tag feature">★ ${f}</span>`).join("");
+      const updates = [];
+      if (release) {
+        updates.push({ msg: `Release ${release.tag_name}: ${release.name || ""}`, time: release.published_at });
+      }
+      (commits || []).forEach(c => {
+        updates.push({ msg: c.commit.message.split("\n")[0], time: c.commit.author.date });
+      });
+      if (!updates.length && repo.pushed_at) {
+        updates.push({ msg: "Last push", time: repo.pushed_at });
+      }
+      return `
+        <div class="repo-card ${r.featured ? "featured" : ""}">
+          <div class="repo-head">
+            <div class="repo-name">
+              <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
+              ${r.featured ? ' <span style="color:var(--accent-2);font-size:0.7rem">● pinned</span>' : ""}
+            </div>
+            <div class="repo-stats">
+              <span>★ ${repo.stargazers_count}</span>
+              <span>⑂ ${repo.forks_count}</span>
+            </div>
+          </div>
+          <p class="repo-desc">${repo.description || "No description"}</p>
+          <div class="tag-row">${features}${repo.language ? `<span class="tag">${repo.language}</span>` : ""}</div>
+          <div class="repo-updates">
+            <div style="color:var(--muted);margin-bottom:4px;font-size:0.7rem">Pushed ${formatDate(repo.pushed_at)} · ${timeAgo(repo.updated_at)}</div>
+            ${updates.map(u => `
+              <div class="update-row">
+                <span class="dot">›</span>
+                <span class="msg">${escapeHtml(u.msg)}</span>
+                <span class="time">${timeAgo(u.time)}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
     }
 
     function renderGitHubWindow() {
       const grid = document.getElementById("repo-grid");
       if (!grid) return;
 
-      if (!CONFIG.repos.length) {
-        grid.innerHTML = `<p>เพิ่ม repos ใน CONFIG.repos ใน index.html</p>`;
+      // pinned repos first
+      const pinnedKeys = new Set(CONFIG.pinnedRepos.map(r => `${r.owner}/${r.name}`));
+      const pinnedCards = CONFIG.pinnedRepos.map(r => {
+        const key = `${r.owner}/${r.name}`;
+        return renderRepoCard(r, state.repoData[key]);
+      });
+
+      // all other repos sorted by pushed_at
+      const otherRepos = state.allRepos
+        .filter(repo => !pinnedKeys.has(`${repo.owner.login}/${repo.name}`))
+        .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
+
+      const otherCards = otherRepos.map(repo => {
+        const key = `${repo.owner.login}/${repo.name}`;
+        const data = state.repoData[key] || { owner: repo.owner.login, name: repo.name, repo, commits: [], release: null };
+        return renderRepoCard({ owner: repo.owner.login, name: repo.name, featured: false }, data);
+      });
+
+      if (!pinnedCards.length && !otherCards.length) {
+        grid.innerHTML = `<p>กำลัง sync กับ GitHub...</p>`;
         return;
       }
 
-      grid.innerHTML = CONFIG.repos.map(r => {
-        const key = `${r.owner}/${r.name}`;
-        const data = state.repoData[key];
-        const display = r.displayName || r.name;
-
-        if (!data) {
-          return `<div class="repo-card ${r.featured ? "featured" : ""}">
-            <div class="repo-name">${r.owner}/${display}</div>
-            <p class="repo-desc">Loading...</p>
-          </div>`;
-        }
-
-        const { repo, commits, release } = data;
-        const features = (r.features || []).map(f => `<span class="tag feature">★ ${f}</span>`).join("");
-
-        const updates = [];
-        if (release) {
-          updates.push({ msg: `Release ${release.tag_name}: ${release.name || ""}`, time: release.published_at });
-        }
-        (commits || []).forEach(c => {
-          updates.push({
-            msg: c.commit.message.split("\n")[0],
-            time: c.commit.author.date,
-            author: c.commit.author.name,
-          });
-        });
-        if (!updates.length && repo.pushed_at) {
-          updates.push({ msg: "Last push", time: repo.pushed_at });
-        }
-
-        return `
-          <div class="repo-card ${r.featured ? "featured" : ""}">
-            <div class="repo-head">
-              <div class="repo-name">
-                <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
-                ${r.featured ? ' <span style="color:var(--accent-2);font-size:0.7rem">● featured</span>' : ""}
-              </div>
-              <div class="repo-stats">
-                <span>★ ${repo.stargazers_count}</span>
-                <span>⑂ ${repo.forks_count}</span>
-              </div>
-            </div>
-            <p class="repo-desc">${repo.description || "No description"}</p>
-            <div class="tag-row">${features}
-              ${repo.language ? `<span class="tag">${repo.language}</span>` : ""}
-            </div>
-            <div class="repo-updates">
-              <div style="color:var(--warn);margin-bottom:6px">⟳ Updates</div>
-              <div style="color:var(--muted);margin-bottom:6px">Pushed ${formatDate(repo.pushed_at)} · Updated ${timeAgo(repo.updated_at)}</div>
-              ${updates.map(u => `
-                <div class="update-row">
-                  <span class="dot">›</span>
-                  <span class="msg">${escapeHtml(u.msg)}</span>
-                  <span class="time">${timeAgo(u.time)}</span>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `;
-      }).join("");
+      let html = "";
+      if (pinnedCards.length) {
+        html += `<div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--warn);margin-bottom:8px">◆ Pinned</div>`;
+        html += pinnedCards.join("");
+      }
+      if (otherCards.length) {
+        html += `<div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);margin:${pinnedCards.length ? "16px" : "0"} 0 8px">All Repositories (${otherRepos.length})</div>`;
+        html += otherCards.join("");
+      }
+      grid.innerHTML = html;
     }
 
     function escapeHtml(s) {
@@ -867,7 +943,9 @@
         stack: () => { openWindow("stack"); termLog("Opened stack.cfg"); },
         experience: () => { openWindow("experience"); termLog("Opened work.log"); },
         repos: () => {
-          CONFIG.repos.forEach(r => termLog(`  ${r.owner}/${r.name} [${(r.features || []).join(", ")}]`));
+          termLog(`Pinned (${CONFIG.pinnedRepos.length}):`, "var(--warn)");
+          CONFIG.pinnedRepos.forEach(r => termLog(`  ★ ${r.owner}/${r.name} [${(r.features || []).join(", ")}]`));
+          termLog(`All repos: ${state.allRepos.length} from @${CONFIG.githubUsername}`);
         },
         sync: () => { syncAllRepos(); termLog("Syncing GitHub...", "var(--accent)"); },
         clear: () => { document.getElementById("term-out").innerHTML = ""; },
